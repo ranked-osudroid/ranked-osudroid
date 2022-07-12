@@ -29,6 +29,7 @@ import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
 import ru.nsu.ccfit.zuev.osu.RGBColor;
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
+import ru.nsu.ccfit.zuev.osu.helper.DifficultyHelper;
 import ru.nsu.ccfit.zuev.skins.OsuSkin;
 import ru.nsu.ccfit.zuev.skins.SkinManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
@@ -97,6 +98,10 @@ public class Slider extends GameObject {
     private boolean preStageFinish = false;
 
     private SliderBody2D abstractSliderBody = null;
+
+    // for v2 slider
+    private float firstClickTime;
+    private int i = 0;
 
     public Slider() {
         startCircle = SpritePool.getInstance().getSprite("sliderstartcircle");
@@ -799,15 +804,42 @@ public class Slider extends GameObject {
         }
         // Calculating score
         int score = 0;
-        if (ticksGot > 0) {
-            score = 50;
+        float acc = Math.abs(firstClickTime - preTime);
+        firstClickTime = 0;
+
+        if(GameHelper.isPr()) {
+            DifficultyHelper difficultyHelper = GameHelper.getDifficultyHelper();
+            float od = GameScene.getOverallDifficulty();
+
+            if(acc > difficultyHelper.hitWindowFor50(od)) {
+                score = 0;
+            }
+
+            if(acc <= difficultyHelper.hitWindowFor300(od) && ticksGot >= ticksTotal) {
+                score = 300;
+            }
+            else if(acc <= difficultyHelper.hitWindowFor100(od) && ticksGot >= ticksTotal / 2) {
+                score = 100;
+            }
+            else if(acc <= difficultyHelper.hitWindowFor50(od) && ticksGot > 0) {
+                score = 50;
+            }
+            else {
+                score = 0;
+            }
         }
-        if (ticksGot >= ticksTotal / 2) {
-            score = 100;
+        else {
+            if (ticksGot > 0) {
+                score = 50;
+            }
+            if (ticksGot >= ticksTotal / 2) {
+                score = 100;
+            }
+            if (ticksGot >= ticksTotal) {
+                score = 300;
+            }
         }
-        if (ticksGot >= ticksTotal) {
-            score = 300;
-        }
+
         // If slider was in reverse mode, we should swap start and end points
         if (reverse) {
             Slider.this.listener.onSliderHit(id, score,
@@ -821,6 +853,7 @@ public class Slider extends GameObject {
             firstHitAccuracy = (int) (GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty()) * 1000 + 13);
         }
         listener.onSliderEnd(id, firstHitAccuracy, tickSet);
+        startHit = false;
         // Remove slider from scene
         SyncTaskManager.getInstance().run(new Runnable() {
 
@@ -894,7 +927,7 @@ public class Slider extends GameObject {
                 ticksGot++;
                 listener.onSliderHit(id, 30, null, path.points.get(0), false, color, GameObjectListener.SLIDER_START);
             } else {
-                if (isHit() && -passedTime < GameHelper.getDifficultyHelper().hitWindowFor50(GameHelper.getDifficulty())) // if
+                if (isHit() && -passedTime < GameHelper.getDifficultyHelper().hitWindowFor50(GameScene.getOverallDifficulty())) // if
                 // we
                 // clicked
                 {
@@ -950,6 +983,8 @@ public class Slider extends GameObject {
                 sp.setColor(color.r(), color.g(), color.b());
             }
         }
+
+        firstClickTime += (startHit == false) ? dt : 0;
 
         if (passedTime < 0) // we at approach time
         {
@@ -1279,6 +1314,7 @@ public class Slider extends GameObject {
             // clicked
             {
                 listener.registerAccuracy(passedTime);
+                firstClickTime = -passedTime + dt;
                 startHit = true;
                 Utils.playHitSound(listener, soundId[0], sampleSet[0], addition[0]);
                 ticksGot++;

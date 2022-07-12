@@ -11,6 +11,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 
+import lombok.Getter;
+import lombok.Setter;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.Constants;
 import ru.nsu.ccfit.zuev.osu.RGBColor;
@@ -57,6 +59,12 @@ public class GameHelper {
     private static Queue<PointF> pointPool = new LinkedList<PointF>();
 
     private static DifficultyHelper difficultyHelper = DifficultyHelper.StdDifficulty;
+
+    // V2 슬라이더를 PR 에만 적용할꺼임
+    // 그래서 PR 확인 여부가 필요함
+    @Getter
+    @Setter
+    private static boolean pr;
 
     static {
         binomTableN = 35;
