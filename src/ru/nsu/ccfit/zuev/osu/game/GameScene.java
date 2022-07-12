@@ -51,6 +51,7 @@ import java.util.Iterator;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import lombok.Getter;
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider;
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.audio.effect.Metronome;
@@ -142,7 +143,6 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private float scale;
     private float approachRate;
     private float rawDifficulty;
-    private float overallDifficulty;
     private float rawDrain;
     private float drain;
     private StatisticV2 stat;
@@ -186,6 +186,16 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
     private DifficultyHelper difficultyHelper = DifficultyHelper.StdDifficulty;
 
     private long previousFrameTime;
+
+    @Getter
+    private static float overallDifficulty;
+
+    /**
+     * Slider class에서 첫 히트 판정 조정할때
+     * overallDifficulty 변수가 필요함.
+     * 어디서든지 사용할 수 있도록 static으로 만들어주고
+     * Getter 설정까지 해줘야함
+     */
 
     public GameScene(final Engine engine) {
         this.engine = engine;
@@ -398,6 +408,12 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             overallDifficulty = Math.min(1.4f * overallDifficulty, 10f);
             approachRate = (float) GameHelper.ar2ms(Math.min(1.4f * rawApproachRate, 10f)) / 1000f;
             GameHelper.setHardrock(true);
+        }
+
+        // PR 추가
+        GameHelper.setPr(false);
+        if(ModMenu.getInstance().getMod().contains(GameMod.MOD_PRECISE)) {
+            GameHelper.setPr(true);
         }
 
         timeMultiplier = 1f;
