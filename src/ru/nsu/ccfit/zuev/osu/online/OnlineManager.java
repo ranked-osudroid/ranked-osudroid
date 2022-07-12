@@ -3,28 +3,30 @@ package ru.nsu.ccfit.zuev.osu.online;
 import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import okhttp3.OkHttpClient;
-
-import org.anddev.andengine.opengl.texture.region.TextureRegion;
 import org.anddev.andengine.util.Base64;
 import org.anddev.andengine.util.Debug;
 
 import java.io.File;
-import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
+import ml.ranked_osudroid.osudroid.CodeMessages;
+import okhttp3.OkHttpClient;
 import ru.nsu.ccfit.zuev.osu.BeatmapInfo;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.GlobalManager;
-import ru.nsu.ccfit.zuev.osu.MainActivity;
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
+import ru.nsu.ccfit.zuev.osu.ToastLogger;
 import ru.nsu.ccfit.zuev.osu.TrackInfo;
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calcuator;
 import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException;
+import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
 public class OnlineManager {
@@ -53,6 +55,9 @@ public class OnlineManager {
     private int mapRank;
     private int replayID = 0;
 
+    private boolean isMappooler = false;
+    private boolean isStaff = false;
+
     public static OnlineManager getInstance() {
         if (instance == null) {
             instance = new OnlineManager();
@@ -72,16 +77,22 @@ public class OnlineManager {
         this.context = context;
     }
 
-    private String getSecuredString(String string) {
+    private String getSecuredString(String... strings) {
+        StringBuilder sb = new StringBuilder();
+
+        for(String string : strings) {
+            sb.append(string);
+        }
+
         String first = new String(Base64.decode(BuildConfig.SECURE_1, Base64.DEFAULT));
         String second = new String(Base64.decode(BuildConfig.SECURE_2, Base64.DEFAULT));
-        return MD5Calcuator.getStringMD5(first + string + second);
+        return MD5Calcuator.getStringMD5(first + sb.toString() + second);
     }
 
     private ArrayList<String> sendRequest(PostBuilder post, String url) throws OnlineManagerException {
         ArrayList<String> response;
         try {
-            response = post.requestWithAttempts(url, 3);
+            response = post.requestWithAttempts(url, 1);
         } catch (RequestException e) {
             Debug.e(e.getMessage(), e);
             failMessage = "Cannot connect to server";
@@ -102,80 +113,92 @@ public class OnlineManager {
             return null;
         }
 
-        if (!response.get(0).equals("SUCCESS")) {
-            Debug.i("sendRequest response code:  " + response.get(0));
-            if (response.size() >= 2) {
-                failMessage = response.get(1);
-            } else
-                failMessage = "Unknown server error";
-            Debug.i("Received fail: " + failMessage);
-            return null;
-        }
-
-
         return response;
     }
 
     public boolean logIn() throws OnlineManagerException {
-        return logIn(username, password);
+        return logIn(username);
     }
 
-    public boolean logIn(String username) throws OnlineManagerException {
-        return logIn(username, password);
-    }
-
-    public synchronized boolean logIn(String username, String password) throws OnlineManagerException {
-        this.username = username;
-        this.password = password;
+    public synchronized boolean logIn(String token) throws OnlineManagerException {
+        username = "Loading...";
+        avatarURL = "";
+        ssid = "no";
+        rank = 1;
+        score = 6942;
+        accuracy = 100F;
 
         PostBuilder post = new PostBuilder();
-        post.addParam("username", username);
-        post.addParam("password", MD5Calcuator.getStringMD5(password + "taikotaiko"));
-        post.addParam("version", onlineVersion);
 
-        ArrayList<String> response = sendRequest(post, endpoint + "login.php");
+        token = token.replace("\\n", "");
+        Debug.i(MessageFormat.format("token : {0}\ndevice id : {1}", token, Config.getOnlineDeviceID()));
+
+        post.addParam("token", token);
+        post.addParam("deviceid", Config.getOnlineDeviceID());
+        post.addParam("secure", getSecuredString(token, Config.getOnlineDeviceID(), BuildConfig.CODENAME));
+
+        ArrayList<String> response = sendRequest(post, BuildConfig.URL + "api/login");
 
         if (response == null) {
             return false;
         }
-        if (response.size() < 2) {
-            failMessage = "Invalid server response";
-            return false;
+
+        try {
+            JsonObject jsonObject = JsonParser.parseString(response.get(0)).getAsJsonObject();
+
+            String message = jsonObject.get("status").getAsString();
+            switch (message) {
+                case "0":
+                    ToastLogger.showText(
+                            MessageFormat.format("Failed to log in.\n{0}",
+                                    CodeMessages.getErrorMessageCode(jsonObject.get("code").getAsString())), true);
+                    failMessage = "Failed to login.";
+                    return false;
+                case "1":
+                    ToastLogger.showText("Successfully logged in.", true);
+                    JsonObject object = jsonObject.get("output").getAsJsonObject();
+                    userId = object.get("uuid").getAsString();
+                    username = object.get("name").getAsString();
+                    if(object.has("profile")) {
+                        String discordId = object.get("discord_id").getAsString();
+                        String avatarId = object.get("profile").getAsString();
+                        avatarURL = "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatarId + ".png?size=100";
+                    }
+                    isStaff = object.get("staff").getAsInt() == 1;
+                    isMappooler = object.get("mappooler").getAsInt() == 1;
+                    return true;
+                default:
+                    ToastLogger.showText("I am sorry but Something went wrong. so I could not log in.", true);
+                    failMessage = "Failed to login.";
+                    return false;
+            }
+
+
+        }
+        catch(Exception e) {
+            ToastLogger.showText("ERROR!", true);
+            e.printStackTrace();
         }
 
-        String[] params = response.get(1).split("\\s+");
-        if (params.length < 6) {
-            failMessage = "Invalid server response";
-            return false;
-        }
-        userId = params[0];
-        ssid = params[1];
-        rank = Integer.parseInt(params[2]);
-        score = Long.parseLong(params[3]);
-        accuracy = Integer.parseInt(params[4]) / 100000f;
-        this.username = params[5];
-        if (params.length >= 7) {
-            avatarURL = params[6];
-        } else {
-            avatarURL = "";
-        }
+        // TODO : 이 파이어베이스는 추후에 알아보기
 
-        Bundle bParams = new Bundle();
-        bParams.putString(FirebaseAnalytics.Param.METHOD, "ingame");
-        GlobalManager.getInstance().getMainActivity().getAnalytics().logEvent(FirebaseAnalytics.Event.LOGIN,
-            bParams);
+//        Bundle bParams = new Bundle();
+//        bParams.putString(FirebaseAnalytics.Param.METHOD, "ingame");
+//        GlobalManager.getInstance().getMainActivity().getAnalytics().logEvent(FirebaseAnalytics.Event.LOGIN,
+//            bParams);
 
         return true;
     }
 
     boolean tryToLogIn() throws OnlineManagerException {
-        if (logIn(username, password) == false) {
+        if (logIn(username) == false) {
             stayOnline = false;
             return false;
         }
         return true;
     }
 
+    // No use
     public boolean register(final String username, final String password, final String email,
                             final String deviceID) throws OnlineManagerException {
         PostBuilder post = new PostBuilder();
@@ -194,6 +217,7 @@ public class OnlineManager {
         return (response != null);
     }
 
+    // No use
     public void startPlay(final TrackInfo track, final String hash) throws OnlineManagerException {
         Debug.i("Starting play...");
         playID = null;
@@ -250,49 +274,71 @@ public class OnlineManager {
         Debug.i("Getting play ID = " + playID);
     }
 
-    public boolean sendRecord(String data) throws OnlineManagerException {
-        if (playID == null || playID.length() == 0) {
-            failMessage = "I don't have play ID";
+    public boolean sendRecord(StatisticV2 stats) throws OnlineManagerException {
+
+        if(userId.equals("")) {
+            ToastLogger.showText("Please log in to submit the score!", true);
             return false;
         }
 
+        long time = System.currentTimeMillis() / 1000L;
+
         Debug.i("Sending record...");
 
-        PostBuilder post = new PostBuilder();
-        post.addParam("userID", userId);
-        post.addParam("playID", playID);
-        post.addParam("data", data);
+        StringBuilder sb = new StringBuilder();
+        sb.append(stats.getHit300k());
+        sb.append(stats.getHit300());
+        sb.append(stats.getHit100k());
+        sb.append(stats.getHit100());
+        sb.append(stats.getHit50());
+        sb.append(stats.getMisses());
+        sb.append(stats.getModifiedTotalScore());
+        sb.append(String.format(Locale.ENGLISH, "%2.2f%%", stats.getAccuracy() * 100));
+        sb.append(stats.getMapHash());
+        sb.append(time);
+        sb.append(stats.getModString());
+        sb.append(stats.getMark());
+        sb.append(stats.getMaxCombo());
 
-        ArrayList<String> response = sendRequest(post, endpoint + "submit.php");
+        PostBuilder post = new PostBuilder();
+
+        post.addParam("secure", getSecuredString(sb.toString()));
+        post.addParam("_300x", String.valueOf(stats.getHit300k()));
+        post.addParam("_300", String.valueOf(stats.getHit300()));
+        post.addParam("_100x", String.valueOf(stats.getHit100k()));
+        post.addParam("_100", String.valueOf(stats.getHit100()));
+        post.addParam("_50", String.valueOf(stats.getHit50()));
+        post.addParam("miss", String.valueOf(stats.getMisses()));
+        post.addParam("score", String.valueOf(stats.getModifiedTotalScore()));
+        post.addParam("acc", String.format(Locale.ENGLISH, "%2.2f%%", stats.getAccuracy() * 100));
+        post.addParam("mapHash", String.valueOf(stats.getMapHash()));
+        post.addParam("time", String.valueOf(time));
+        post.addParam("modList", stats.getModString());
+        post.addParam("rank", stats.getMark());
+        post.addParam("maxCombo", String.valueOf(stats.getMaxCombo()));
+        post.addParam("uuid", userId);
+
+        ArrayList<String> response = sendRequest(post, BuildConfig.URL + "api/submitRecord");
 
         if (response == null) {
             return false;
         }
 
-        if (failMessage.equals("Invalid record data"))
-            return false;
+        JsonObject object = JsonParser.parseString(response.get(0)).getAsJsonObject();
 
-        if (response.size() < 2) {
-            failMessage = "Invalid server response";
-            return false;
+        String message = object.get("status").getAsString();
+
+        switch (message) {
+            case "0":
+                ToastLogger.showText("Failed to upload the score.\n" + CodeMessages.getErrorMessageCode(object.get("code").getAsString()), true);
+                break;
+            case "1":
+                ToastLogger.showText("Successfully uploaded the score.", true);
+                break;
+            default:
+                ToastLogger.showText("I am sorry but Something went wrong. so I could not upload the score.", true);
+                break;
         }
-
-        String[] resp = response.get(1).split("\\s+");
-        if (resp.length < 4) {
-            failMessage = "Invalid server response";
-            return false;
-        }
-
-
-        rank = Integer.parseInt(resp[0]);
-        score = Long.parseLong(resp[1]);
-        accuracy = Integer.parseInt(resp[2]) / 100000f;
-        mapRank = Integer.parseInt(resp[3]);
-
-        if (resp.length >= 5) {
-            replayID = Integer.parseInt(resp[4]);
-        } else
-            replayID = 0;
 
         return true;
     }

@@ -15,7 +15,7 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager.OnlineManagerException;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 
 public class OnlineScoring {
-    private static final int attemptCount = 5;
+    private static final int attemptCount = 1;
     private static OnlineScoring instance = null;
     private Boolean onlineMutex = new Boolean(false);
     private OnlinePanel panel = null;
@@ -87,12 +87,12 @@ public class OnlineScoring {
                             success = OnlineManager.getInstance().logIn();
                         } catch (OnlineManagerException e) {
                             Debug.e("Login error: " + e.getMessage());
-                            setPanelMessage("Login failed", "Retrying in 5 sec");
-                            try {
-                                Thread.sleep(3000);
-                            } catch (InterruptedException e1) {
-                                break;
-                            }
+//                            setPanelMessage("Login failed", "Retrying in 5 sec");
+//                            try {
+//                                Thread.sleep(3000);
+//                            } catch (InterruptedException e1) {
+//                                break;
+//                            }
                             continue;
                         }
                         break;
@@ -103,7 +103,7 @@ public class OnlineScoring {
                         loadAvatar(true);
                     } else {
                         setPanelMessage("Cannot log in", OnlineManager.getInstance().getFailMessage());
-                        OnlineManager.getInstance().setStayOnline(false);
+                        OnlineManager.getInstance().setStayOnline(false); // false originally
                     }
                 }
             }
@@ -152,12 +152,8 @@ public class OnlineScoring {
     public void sendRecord(final StatisticV2 record, final SendingPanel panel, final String replay) {
         if (OnlineManager.getInstance().isStayOnline() == false)
             return;
-        if (OnlineManager.getInstance().isReadyToSend() == false)
-            return;
 
         Debug.i("Sending score");
-
-        final String recordData = record.compile();
 
         new AsyncTaskLoader().execute(new OsuAsyncCallback() {
 
@@ -172,7 +168,7 @@ public class OnlineScoring {
                         }
 
                         try {
-                            success = OnlineManager.getInstance().sendRecord(recordData);
+                            success = OnlineManager.getInstance().sendRecord(record);
                         } catch (OnlineManagerException e) {
                             Debug.e("Login error: " + e.getMessage());
                             success = false;
