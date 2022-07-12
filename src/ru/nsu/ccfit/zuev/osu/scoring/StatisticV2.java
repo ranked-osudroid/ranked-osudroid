@@ -7,6 +7,8 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Random;
 
+import lombok.Getter;
+import lombok.Setter;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.game.GameHelper;
 import ru.nsu.ccfit.zuev.osu.game.cursor.flashlight.FlashLightEntity;
@@ -52,6 +54,18 @@ public class StatisticV2 implements Serializable {
     private int negativeTotalOffsetSum;
     private float negativeHitOffsetSum;
     private float unstableRate;
+
+    @Getter
+    @Setter
+    private String mapHash;
+
+    @Getter
+    @Setter
+    private int mapId;
+
+    @Getter
+    @Setter
+    private int mapSetId;
 
     public StatisticV2() {
         random = new Random();
