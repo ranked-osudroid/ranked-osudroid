@@ -10,6 +10,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import okhttp3.OkHttpClient;
 
 import org.anddev.andengine.opengl.texture.region.TextureRegion;
+import org.anddev.andengine.util.Base64;
 import org.anddev.andengine.util.Debug;
 
 import java.io.File;
@@ -24,6 +25,7 @@ import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.TrackInfo;
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calcuator;
 import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException;
+import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
 public class OnlineManager {
     public static final String hostname = "osudroid.moe";
@@ -68,6 +70,12 @@ public class OnlineManager {
         this.password = Config.getOnlinePassword();
         this.deviceID = Config.getOnlineDeviceID();
         this.context = context;
+    }
+
+    private String getSecuredString(String string) {
+        String first = new String(Base64.decode(BuildConfig.SECURE_1, Base64.DEFAULT));
+        String second = new String(Base64.decode(BuildConfig.SECURE_2, Base64.DEFAULT));
+        return MD5Calcuator.getStringMD5(first + string + second);
     }
 
     private ArrayList<String> sendRequest(PostBuilder post, String url) throws OnlineManagerException {

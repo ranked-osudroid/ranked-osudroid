@@ -60,6 +60,10 @@ android {
         ndk {
             abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
         }
+
+        buildConfigField "String", "URL", localProperties['URL']
+        buildConfigField "String", "SECURE_1", localProperties['SECURE_1']
+        buildConfigField "String", "SECURE_2", localProperties['SECURE_2']
     }
 
     packagingOptions {
