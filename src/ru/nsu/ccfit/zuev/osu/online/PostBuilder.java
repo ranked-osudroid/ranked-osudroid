@@ -56,10 +56,10 @@ public class PostBuilder {
 
             if (response == null || response.isEmpty() || response.get(0).length() == 0
                     || !(response.get(0).equals("FAIL") || response.get(0).equals("SUCCESS"))) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                }
+//                try {
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                }
                 continue;
             }
             break;
