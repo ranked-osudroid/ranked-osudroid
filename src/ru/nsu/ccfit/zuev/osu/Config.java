@@ -10,17 +10,16 @@ import android.util.DisplayMetrics;
 import androidx.preference.PreferenceManager;
 
 import com.edlplan.favorite.FavoriteLibrary;
-import com.google.firebase.messaging.FirebaseMessaging;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 import net.margaritov.preference.colorpicker.ColorPickerPreference;
 
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.util.Debug;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import ru.nsu.ccfit.zuev.osu.helper.FileUtils;
 
@@ -222,12 +221,6 @@ public class Config {
         hideInGameUI = prefs.getBoolean("hideInGameUI", false);
         receiveAnnouncements = prefs.getBoolean("receiveAnnouncements", true);
         safeBeatmapBg = prefs.getBoolean("safebeatmapbg", false);
-
-        if(receiveAnnouncements) {
-            FirebaseMessaging.getInstance().subscribeToTopic("announcements");
-        }else {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic("announcements"); 
-        }
 
         //Init
         onlineDeviceID = prefs.getString("installID", null);

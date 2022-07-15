@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -18,12 +17,9 @@ import java.util.Locale;
 
 import ml.ranked_osudroid.osudroid.CodeMessages;
 import okhttp3.OkHttpClient;
-import ru.nsu.ccfit.zuev.osu.BeatmapInfo;
 import ru.nsu.ccfit.zuev.osu.Config;
-import ru.nsu.ccfit.zuev.osu.GlobalManager;
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.ToastLogger;
-import ru.nsu.ccfit.zuev.osu.TrackInfo;
 import ru.nsu.ccfit.zuev.osu.helper.MD5Calcuator;
 import ru.nsu.ccfit.zuev.osu.online.PostBuilder.RequestException;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
@@ -180,13 +176,6 @@ public class OnlineManager {
             e.printStackTrace();
         }
 
-        // TODO : 이 파이어베이스는 추후에 알아보기
-
-//        Bundle bParams = new Bundle();
-//        bParams.putString(FirebaseAnalytics.Param.METHOD, "ingame");
-//        GlobalManager.getInstance().getMainActivity().getAnalytics().logEvent(FirebaseAnalytics.Event.LOGIN,
-//            bParams);
-
         return true;
     }
 
@@ -210,9 +199,6 @@ public class OnlineManager {
         ArrayList<String> response = sendRequest(post, endpoint + "register.php");
 
         Bundle params = new Bundle();
-        params.putString(FirebaseAnalytics.Param.METHOD, "ingame");
-        GlobalManager.getInstance().getMainActivity().getAnalytics().logEvent(FirebaseAnalytics.Event.SIGN_UP,
-            params);
 
         return (response != null);
     }
