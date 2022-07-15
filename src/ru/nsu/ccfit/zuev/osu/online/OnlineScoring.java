@@ -15,7 +15,6 @@ import ru.nsu.ccfit.zuev.osu.online.OnlineManager.OnlineManagerException;
 import ru.nsu.ccfit.zuev.osu.scoring.StatisticV2;
 
 public class OnlineScoring {
-    private static final int attemptCount = 1;
     private static OnlineScoring instance = null;
     private Boolean onlineMutex = new Boolean(false);
     private OnlinePanel panel = null;
@@ -116,40 +115,7 @@ public class OnlineScoring {
         });
     }
 
-    public void startPlay(final TrackInfo track, final String hash) {
-        if (OnlineManager.getInstance().isStayOnline() == false)
-            return;
-        new AsyncTaskLoader().execute(new OsuAsyncCallback() {
-
-
-            public void run() {
-                synchronized (onlineMutex) {
-
-                    for (int i = 0; i < attemptCount; i++) {
-                        try {
-                            OnlineManager.getInstance().startPlay(track, hash);
-                        } catch (OnlineManagerException e) {
-                            Debug.e("Login error: " + e.getMessage());
-                            continue;
-                        }
-                        break;
-                    }
-
-                    if (OnlineManager.getInstance().getFailMessage().length() > 0) {
-                        ToastLogger.showText(OnlineManager.getInstance().getFailMessage(), true);
-                    }
-                }
-            }
-
-
-            public void onComplete() {
-                // TODO Auto-generated method stub
-
-            }
-        });
-    }
-
-    public void sendRecord(final StatisticV2 record, final SendingPanel panel, final String replay) {
+    public void sendRecord(final StatisticV2 record) {
         if (OnlineManager.getInstance().isStayOnline() == false)
             return;
 
@@ -157,46 +123,16 @@ public class OnlineScoring {
 
         new AsyncTaskLoader().execute(new OsuAsyncCallback() {
 
-
             public void run() {
-                boolean success = false;
-                synchronized (onlineMutex) {
-                    for (int i = 0; i < attemptCount; i++) {
-                        if (!record.isScoreValid()) {
-                            Debug.e("Detected illegal actions.");
-                            break;
-                        }
-
-                        try {
-                            success = OnlineManager.getInstance().sendRecord(record);
-                        } catch (OnlineManagerException e) {
-                            Debug.e("Login error: " + e.getMessage());
-                            success = false;
-                        }
-
-                        if (OnlineManager.getInstance().getFailMessage().length() > 0) {
-                            ToastLogger.showText(OnlineManager.getInstance().getFailMessage(), true);
-                            if (OnlineManager.getInstance().getFailMessage().equals("Invalid record data"))
-                                i = attemptCount;
-                        } else if (success) {
-                            updatePanels();
-                            OnlineManager mgr = OnlineManager.getInstance();
-                            panel.show(mgr.getMapRank(), mgr.getScore(), mgr.getRank(), mgr.getAccuracy());
-                            OnlineManager.getInstance().sendReplay(replay);
-                            break;
-                        }
-
-
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                        }
-                    }
-
-                    if (!success) {
-                        panel.setFail();
-                    }
-
+                if(!record.isScoreValid()) {
+                    Debug.e("Detected illegal actions.");
+                    return;
+                }
+                try {
+                    OnlineManager.getInstance().sendRecord(record);
+                }
+                catch (OnlineManagerException e) {
+                    Debug.e("Login error : " + e.getMessage());
                 }
             }
 
@@ -206,17 +142,6 @@ public class OnlineScoring {
 
             }
         });
-    }
-
-    public ArrayList<String> getTop(final File trackFile, final String hash) {
-        synchronized (onlineMutex) {
-            try {
-                return OnlineManager.getInstance().getTop(trackFile, hash);
-            } catch (OnlineManagerException e) {
-                Debug.e("Cannot load scores " + e.getMessage());
-                return new ArrayList<String>();
-            }
-        }
     }
 
     public void loadAvatar(final boolean both) {
