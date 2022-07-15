@@ -126,6 +126,10 @@ public class MainScene implements IUpdateHandler {
     private float showPassTime = 0, syncPassedTime = 0;
     private float menuBarX = 0, playY, optionsY, exitY;
 
+    private Sprite solo, multi, back;
+    private boolean doPlayShow = false;
+    private boolean isPlayShowed = false;
+
 
     public void load(Context context) {
         this.context = context;
@@ -164,7 +168,7 @@ public class MainScene implements IUpdateHandler {
                 if (pSceneTouchEvent.isActionUp()) {
                     Debug.i("logo up");
                     Debug.i("doMenuShow " + doMenuShow + " isMenuShowed " + isMenuShowed + " showPassTime " + showPassTime);
-                    if (doMenuShow == true && isMenuShowed == true) {
+                    if (doMenuShow == true && isMenuShowed == true || doPlayShow && isPlayShowed) {
                         showPassTime = 20000;
                     }
                     if (doMenuShow == false && isMenuShowed == false && logo.getX() == (Config.getRES_WIDTH() - logo.getWidth()) / 2) {
@@ -200,39 +204,13 @@ public class MainScene implements IUpdateHandler {
                 if (pSceneTouchEvent.isActionUp()) {
                     setColor(1, 1, 1);
                     if (isOnExitAnim) return true;
-                    GlobalManager.getInstance().getSongService().setGaming(true);
-                    if (GlobalManager.getInstance().getCamera().getRotation() == 0) {
-                        Utils.setAccelerometerSign(1);
-                    } else {
-                        Utils.setAccelerometerSign(-1);
+
+                    if(doMenuShow && isMenuShowed) {
+                        doMenuShow = false;
+                        doPlayShow = true;
+                        showPassTime = 0;
                     }
-//                    final Intent intent = new Intent(
-//                            MainManager.getInstance().getMainActivity(), OsuActivity.class);
-//                    MainManager.getInstance().getMainActivity().startActivity(intent);
-                    new AsyncTaskLoader().execute(new OsuAsyncCallback() {
-                        public void run() {
-                            GlobalManager.getInstance().getEngine().setScene(new LoadingScreen().getScene());
-                            GlobalManager.getInstance().getMainActivity().checkNewSkins();
-                            GlobalManager.getInstance().getMainActivity().checkNewBeatmaps();
-                            if (!LibraryManager.getInstance().loadLibraryCache(GlobalManager.getInstance().getMainActivity(), true)) {
-                                LibraryManager.getInstance().scanLibrary(GlobalManager.getInstance().getMainActivity());
-                                System.gc();
-                            }
-                            GlobalManager.getInstance().getSongMenu().reload();
-                            /* To fixed skin load bug in some Android 10
-                            if (Build.VERSION.SDK_INT >= 29) {
-                                String skinNow = Config.getSkinPath();
-                                ResourceManager.getInstance().loadSkin(skinNow);
-                            } */
-                        }
 
-                        public void onComplete() {
-
-                            musicControl(MusicOption.PLAY);
-                            GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getSongMenu().getScene());
-                            GlobalManager.getInstance().getSongMenu().select();
-                        }
-                    });
                     return true;
                 }
                 return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
@@ -295,6 +273,98 @@ public class MainScene implements IUpdateHandler {
                     setColor(1, 1, 1);
 
                     showExitDialog();
+
+                    return true;
+                }
+                return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX,
+                        pTouchAreaLocalY);
+            }
+        };
+
+        solo = new Sprite(logo.getX() + logo.getWidth() - Config.getRES_WIDTH() / 3,
+                60 + 82 - 32, ResourceManager.getInstance().getTexture("solo")) {
+
+            @Override
+            public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+                ToastLogger.showText("doMenuShow = " + doMenuShow + "\ndoPlayShow = " + doPlayShow + "\nisMenuShowed = " + isMenuShowed + "\nisPlayShowed = " + isPlayShowed, true);
+                if (pSceneTouchEvent.isActionDown()) {
+                    setColor(0.7f, 0.7f, 0.7f);
+                    if (hitsound != null) {
+                        hitsound.play();
+                    }
+                    return true;
+                }
+                if (pSceneTouchEvent.isActionUp()) {
+                    setColor(1, 1, 1);
+                    if (isOnExitAnim) return true;
+                    GlobalManager.getInstance().getSongService().setGaming(true);
+                    if (GlobalManager.getInstance().getCamera().getRotation() == 0) {
+                        Utils.setAccelerometerSign(1);
+                    } else {
+                        Utils.setAccelerometerSign(-1);
+                    }
+//                    final Intent intent = new Intent(
+//                            MainManager.getInstance().getMainActivity(), OsuActivity.class);
+//                    MainManager.getInstance().getMainActivity().startActivity(intent);
+                    new AsyncTaskLoader().execute(new OsuAsyncCallback() {
+                        public void run() {
+                            GlobalManager.getInstance().getEngine().setScene(new LoadingScreen().getScene());
+                            GlobalManager.getInstance().getMainActivity().checkNewBeatmaps();
+                            if (!LibraryManager.getInstance().loadLibraryCache(GlobalManager.getInstance().getMainActivity(), false)) {
+                                LibraryManager.getInstance().scanLibrary(GlobalManager.getInstance().getMainActivity());
+                            }
+                            GlobalManager.getInstance().getSongMenu().reload();
+                            //To fixed skin load bug in some Android 10
+                            if (Build.VERSION.SDK_INT >= 29) {
+                                String skinNow = Config.getSkinPath();
+                                ResourceManager.getInstance().loadSkin(skinNow);
+                            }
+                        }
+
+                        public void onComplete() {
+
+                            musicControl(MusicOption.PLAY);
+                            GlobalManager.getInstance().getEngine().setScene(GlobalManager.getInstance().getSongMenu().getScene());
+                            GlobalManager.getInstance().getSongMenu().select();
+                        }
+                    });
+                    return true;
+                }
+
+                return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+            }
+        };
+
+        multi = new Sprite(logo.getX() + logo.getWidth() - Config.getRES_WIDTH() / 3,
+                60 + 3 * 82 - 64, ResourceManager.getInstance().getTexture("multiplayer")) {
+            @Override
+            public boolean onAreaTouched(TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
+                ToastLogger.showText("This is maintenance.", true);
+                return true;
+            }
+        };
+
+        back = new Sprite(logo.getX() + logo.getWidth() - Config.getRES_WIDTH() / 3,
+                60 + 5 * 82 - 128 + 32 , ResourceManager.getInstance().getTexture("exit")) {
+            @Override
+            public boolean onAreaTouched(final TouchEvent pSceneTouchEvent,
+                                         final float pTouchAreaLocalX, final float pTouchAreaLocalY) {
+                ToastLogger.showText("doMenuShow = " + doMenuShow + "\ndoPlayShow = " + doPlayShow + "\nisMenuShowed = " + isMenuShowed + "\nisPlayShowed = " + isPlayShowed, true);
+                if (pSceneTouchEvent.isActionDown()) {
+                    setColor(0.7f, 0.7f, 0.7f);
+                    if (hitsound != null) {
+                        hitsound.play();
+                    }
+                    return true;
+                }
+                if (pSceneTouchEvent.isActionUp()) {
+                    setColor(1, 1, 1);
+                    if (isOnExitAnim) return true;
+
+                    if(doPlayShow && isPlayShowed) {
+                        doMenuShow = true;
+                        doPlayShow = false;
+                    }
 
                     return true;
                 }
@@ -545,6 +615,9 @@ public class MainScene implements IUpdateHandler {
         play.setAlpha(0f);
         options.setAlpha(0f);
         exit.setAlpha(0f);
+        solo.setAlpha(0f);
+        multi.setAlpha(0f);
+        back.setAlpha(0f);
 
         logo.setPosition((Config.getRES_WIDTH() - logo.getWidth()) / 2, (Config.getRES_HEIGHT() - logo.getHeight()) / 2);
         logoOverlay.setPosition((Config.getRES_WIDTH() - logo.getWidth()) / 2, (Config.getRES_HEIGHT() - logo.getHeight()) / 2);
@@ -559,6 +632,13 @@ public class MainScene implements IUpdateHandler {
         playY = play.getScaleY();
         exitY = exit.getScaleY();
 
+        multi.setScale(Config.getRES_WIDTH() / 1024f);
+        solo.setScale(Config.getRES_WIDTH() / 1024f);
+        back.setScale(Config.getRES_WIDTH() / 1024f);
+        multi.setPosition(options.getX(), (Config.getRES_HEIGHT() - options.getHeight()) / 2);
+        solo.setPosition(play.getX(), options.getY() - play.getHeight() - 40 * Config.getRES_WIDTH() / 1024f);
+        back.setPosition(exit.getX(), options.getY() + options.getHeight() + 40 * Config.getRES_WIDTH() / 1024f);
+
         scene.attachChild(lastBackground, 0);
         scene.attachChild(bgTopRect);
         scene.attachChild(bgbottomRect);
@@ -567,6 +647,9 @@ public class MainScene implements IUpdateHandler {
         scene.attachChild(play);
         scene.attachChild(options);
         scene.attachChild(exit);
+        scene.attachChild(solo);
+        scene.attachChild(multi);
+        scene.attachChild(back);
         scene.attachChild(logo);
         scene.attachChild(logoOverlay);
         scene.attachChild(music_nowplay);
@@ -822,6 +905,54 @@ public class MainScene implements IUpdateHandler {
             scene.registerTouchArea(options);
             scene.registerTouchArea(exit);
             isMenuShowed = true;
+            isPlayShowed = false;
+        }
+
+        if(isMenuShowed && !isPlayShowed && doPlayShow) {
+            scene.unregisterTouchArea(play);
+            scene.unregisterTouchArea(options);
+            scene.unregisterTouchArea(exit);
+            play.setAlpha(0f);
+            options.setAlpha(0f);
+            exit.setAlpha(0f);
+            solo.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            multi.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            back.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            scene.registerTouchArea(solo);
+            scene.registerTouchArea(multi);
+            scene.registerTouchArea(back);
+            isMenuShowed = false;
+            isPlayShowed = true;
+        }
+
+        if(doMenuShow && doPlayShow && !isMenuShowed) {
+            scene.unregisterTouchArea(solo);
+            scene.unregisterTouchArea(multi);
+            scene.unregisterTouchArea(back);
+            solo.setAlpha(0f);
+            multi.setAlpha(0f);
+            back.setAlpha(0f);
+
+            play.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            options.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            exit.registerEntityModifier(new ParallelEntityModifier(
+                    new MoveXModifier(0.5f, menuBarX - 100, menuBarX, EaseElasticOut.getInstance()),
+                    new org.anddev.andengine.entity.modifier.AlphaModifier(0.5f, 0, 0.9f, EaseCubicOut.getInstance())));
+            scene.registerTouchArea(play);
+            scene.registerTouchArea(options);
+            scene.registerTouchArea(exit);
+            isPlayShowed = false;
+            isMenuShowed = true;
         }
 
         if (doMenuShow == true && isMenuShowed == true) {
@@ -847,6 +978,35 @@ public class MainScene implements IUpdateHandler {
                 }
                 isMenuShowed = false;
                 doMenuShow = false;
+                showPassTime = 0;
+            } else {
+                showPassTime += pSecondsElapsed * 1000f;
+            }
+        }
+
+        if (doPlayShow == true && isPlayShowed == true) {
+            if (showPassTime > 10000f) {
+                scene.unregisterTouchArea(solo);
+                scene.unregisterTouchArea(multi);
+                scene.unregisterTouchArea(back);
+                solo.registerEntityModifier(new ParallelEntityModifier(
+                        new MoveXModifier(1f, menuBarX, menuBarX - 50, EaseExponentialOut.getInstance()),
+                        new org.anddev.andengine.entity.modifier.AlphaModifier(1f, 0.9f, 0, EaseExponentialOut.getInstance())));
+                multi.registerEntityModifier(new ParallelEntityModifier(
+                        new MoveXModifier(1f, menuBarX, menuBarX - 50, EaseExponentialOut.getInstance()),
+                        new org.anddev.andengine.entity.modifier.AlphaModifier(1f, 0.9f, 0, EaseExponentialOut.getInstance())));
+                back.registerEntityModifier(new ParallelEntityModifier(
+                        new MoveXModifier(1f, menuBarX, menuBarX - 50, EaseExponentialOut.getInstance()),
+                        new org.anddev.andengine.entity.modifier.AlphaModifier(1f, 0.9f, 0, EaseExponentialOut.getInstance())));
+                logo.registerEntityModifier(new MoveXModifier(1f, Config.getRES_WIDTH() / 3 - logo.getWidth() / 2, Config.getRES_WIDTH() / 2 - logo.getWidth() / 2,
+                        EaseBounceOut.getInstance()));
+                logoOverlay.registerEntityModifier(new MoveXModifier(1f, Config.getRES_WIDTH() / 3 - logo.getWidth() / 2, Config.getRES_WIDTH() / 2 - logo.getWidth() / 2,
+                        EaseBounceOut.getInstance()));
+                for (int i = 0; i < spectrum.length; i++) {
+                    spectrum[i].registerEntityModifier(new MoveXModifier(1f, Config.getRES_WIDTH() / 3, Config.getRES_WIDTH() / 2, EaseBounceOut.getInstance()));
+                }
+                isPlayShowed = false;
+                doPlayShow = false;
                 showPassTime = 0;
             } else {
                 showPassTime += pSecondsElapsed * 1000f;

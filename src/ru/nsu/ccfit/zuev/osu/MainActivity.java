@@ -260,6 +260,8 @@ public class MainActivity extends BaseGameActivity implements
     public void onLoadResources() {
         Config.setTextureQuality(1);
         ResourceManager.getInstance().Init(mEngine, this);
+        ResourceManager.getInstance().loadHighQualityAsset("solo", "solo.png");
+        ResourceManager.getInstance().loadHighQualityAsset("multiplayer", "multiplayer.png");
         ResourceManager.getInstance().loadHighQualityAsset("logo", "logo.png");
         ResourceManager.getInstance().loadHighQualityAsset("play", "play.png");
         //ResourceManager.getInstance().loadHighQualityAsset("multiplayer", "multiplayer.png");
