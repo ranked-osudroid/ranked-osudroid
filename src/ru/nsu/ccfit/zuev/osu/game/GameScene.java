@@ -638,7 +638,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
 
         //TODO online
         if (!replaying)
-            OnlineScoring.getInstance().startPlay(track, trackMD5);
+//            OnlineScoring.getInstance().startPlay(track, trackMD5);
 
         if (Config.isEnableStoryboard()) {
             storyboardSprite.loadStoryboard(track.getFilename());
@@ -797,6 +797,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
 
         stat = new StatisticV2();
+
+        stat.setMapHash((trackMD5.equals("") || trackMD5 == null) ? "" : trackMD5);
+        stat.setMapId(lastTrack.getBeatmapID());
+        stat.setMapSetId(lastTrack.getBeatmapSetID());
+
         stat.setMod(ModMenu.getInstance().getMod());
         float multiplier = 1 + rawDifficulty / 10f + rawDrain / 10f;
         multiplier += (Float.parseFloat(beatmapData.getData("Difficulty",

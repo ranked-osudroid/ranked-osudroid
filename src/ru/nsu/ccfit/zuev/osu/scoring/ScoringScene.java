@@ -485,8 +485,7 @@ public class ScoringScene {
         if (track != null && mapMD5 != null) {
             ResourceManager.getInstance().getSound("applause").play();
             ScoreLibrary.getInstance().addScore(track.getFilename(), stat, replay);
-            if (stat.getModifiedTotalScore() > 0 && OnlineManager.getInstance().isStayOnline() &&
-                    OnlineManager.getInstance().isReadyToSend()) {
+            if (stat.getModifiedTotalScore() > 0 && OnlineManager.getInstance().isStayOnline()) {
                 boolean hasUnrankedMod = SmartIterator.wrap(stat.getMod().iterator())
                     .applyFilter(m -> m.unranked).hasNext();
                 if (hasUnrankedMod
@@ -496,12 +495,12 @@ public class ScoringScene {
                     return;
                 }
 
-                SendingPanel sendingPanel = new SendingPanel(OnlineManager.getInstance().getRank(),
-                        OnlineManager.getInstance().getScore(), OnlineManager.getInstance().getAccuracy());
-                sendingPanel.setPosition(Config.getRES_WIDTH() / 2 - 400, Utils.toRes(-300));
-                scene.registerTouchArea(sendingPanel.getDismissTouchArea());
-                scene.attachChild(sendingPanel);
-                ScoreLibrary.getInstance().sendScoreOnline(stat, replay, sendingPanel);
+//                SendingPanel sendingPanel = new SendingPanel(OnlineManager.getInstance().getRank(),
+//                        OnlineManager.getInstance().getScore(), OnlineManager.getInstance().getAccuracy());
+//                sendingPanel.setPosition(Config.getRES_WIDTH() / 2 - 400, Utils.toRes(-300));
+//                scene.registerTouchArea(sendingPanel.getDismissTouchArea());
+//                scene.attachChild(sendingPanel);
+                ScoreLibrary.getInstance().sendScoreOnline(stat);
             }
         }
     }

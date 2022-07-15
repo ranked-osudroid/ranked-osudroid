@@ -143,11 +143,10 @@ public class ScoreLibrary {
 
     }
 
-    public void sendScoreOnline(final StatisticV2 stat, final String replay,
-                                final SendingPanel panel) {
+    public void sendScoreOnline(final StatisticV2 stat) {
         Debug.i("Preparing for online!");
         if (stat.getModifiedTotalScore() <= 0) return;
-        OnlineScoring.getInstance().sendRecord(stat, panel, replay);
+        OnlineScoring.getInstance().sendRecord(stat);
     }
 
     public void addScore(final String trackPath, final StatisticV2 stat, final String replay) {
