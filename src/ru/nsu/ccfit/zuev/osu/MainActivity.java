@@ -17,11 +17,14 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.os.*;
-
-import androidx.preference.PreferenceManager;
-import androidx.core.content.PermissionChecker;
-
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.PowerManager;
+import android.os.StatFs;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -32,14 +35,16 @@ import android.view.accessibility.AccessibilityManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
-
 import android.widget.Toast;
-import com.edlplan.ui.ActivityOverlay;
-import com.edlplan.ui.fragment.ConfirmDialogFragment;
-import com.edlplan.ui.fragment.BuildTypeNoticeFragment;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import androidx.core.content.PermissionChecker;
+import androidx.preference.PreferenceManager;
+
+import com.edlplan.ui.ActivityOverlay;
+import com.edlplan.ui.fragment.BuildTypeNoticeFragment;
+import com.edlplan.ui.fragment.ConfirmDialogFragment;
+
+import net.lingala.zip4j.ZipFile;
 
 import org.anddev.andengine.engine.Engine;
 import org.anddev.andengine.engine.camera.Camera;
@@ -66,8 +71,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import net.lingala.zip4j.ZipFile;
 
 import ru.nsu.ccfit.zuev.audio.BassAudioPlayer;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
@@ -96,8 +99,6 @@ public class MainActivity extends BaseGameActivity implements
     private SaveServiceObject saveServiceObject;
     private IntentFilter filter;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private FirebaseAnalytics analytics;
-    private FirebaseCrashlytics crashlytics;
     private boolean willReplay = false;
     private static boolean activityVisible = true;
     private boolean autoclickerDialogShown = false;
@@ -107,8 +108,6 @@ public class MainActivity extends BaseGameActivity implements
         if (!checkPermissions()) {
             return null;
         }
-        analytics = FirebaseAnalytics.getInstance(this);
-        crashlytics = FirebaseCrashlytics.getInstance();
         Config.loadConfig(this);
         initialGameDirectory();
         //Debug.setDebugLevel(Debug.DebugLevel.NONE);
@@ -117,7 +116,6 @@ public class MainActivity extends BaseGameActivity implements
         SyncTaskManager.getInstance().init(this);
         InputManager.setContext(this);
         OnlineManager.getInstance().Init(getApplicationContext());
-        crashlytics.setUserId(Config.getOnlineDeviceID());
 
         final DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -301,7 +299,6 @@ public class MainActivity extends BaseGameActivity implements
         new AsyncTaskLoader().execute(new OsuAsyncCallback() {
             public void run() {
                 GlobalManager.getInstance().init();
-                analytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, null);
                 GlobalManager.getInstance().setLoadingProgress(50);
                 Config.loadSkins();
                 checkNewSkins();
@@ -527,10 +524,6 @@ public class MainActivity extends BaseGameActivity implements
 
     public Handler getHandler() {
         return handler;
-    }
-
-    public FirebaseAnalytics getAnalytics() {
-        return analytics;
     }
 
     public PowerManager.WakeLock getWakeLock() {
