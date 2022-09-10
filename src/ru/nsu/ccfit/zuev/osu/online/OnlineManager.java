@@ -15,6 +15,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import lombok.Getter;
 import ml.ranked_osudroid.osudroid.CodeMessages;
 import okhttp3.OkHttpClient;
 import ru.nsu.ccfit.zuev.osu.Config;
@@ -51,7 +52,9 @@ public class OnlineManager {
     private int mapRank;
     private int replayID = 0;
 
+    @Getter
     private boolean isMappooler = false;
+    @Getter
     private boolean isStaff = false;
 
     public static OnlineManager getInstance() {
@@ -159,6 +162,10 @@ public class OnlineManager {
                         String discordId = object.get("discord_id").getAsString();
                         String avatarId = object.get("profile").getAsString();
                         avatarURL = "https://cdn.discordapp.com/avatars/" + discordId + "/" + avatarId + ".png?size=100";
+
+                        // https://cdn.discordapp.com/avatars/341785408931233793/b35fb54af360b0d6721720f0508160d5.png?size=100
+
+                        // https://cdn.discordapp.com/avatars/341785408931233793/b35fb54af360b0d6721720f0508160d5.png?size=100
                     }
                     isStaff = object.get("staff").getAsInt() == 1;
                     isMappooler = object.get("mappooler").getAsInt() == 1;
