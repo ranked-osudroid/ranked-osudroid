@@ -23,7 +23,7 @@ public class OnlinePanel extends Entity {
 
     public Rectangle rect;
 
-    private ChangeableText rankText, nameText, scoreText, accText;
+    private ChangeableText rankText, nameText, scoreText; //, accText;
     private ChangeableText messageText, submessageText;
     private Sprite avatar = null;
 
@@ -97,11 +97,11 @@ public class OnlinePanel extends Entity {
         scoreText.setColor(0.85f, 0.85f, 0.9f);
         onlineLayer.attachChild(scoreText);
 
-        accText = new ChangeableText(Utils.toRes(120), Utils.toRes(75),
-                ResourceManager.getInstance().getFont("smallFont"), "Accuracy: 0.00%",
-                HorizontalAlign.LEFT, 17);
-        accText.setColor(0.85f, 0.85f, 0.9f);
-        onlineLayer.attachChild(accText);
+//        accText = new ChangeableText(Utils.toRes(120), Utils.toRes(75),
+//                ResourceManager.getInstance().getFont("smallFont"), "Accuracy: 0.00%",
+//                HorizontalAlign.LEFT, 17);
+//        accText.setColor(0.85f, 0.85f, 0.9f);
+//        onlineLayer.attachChild(accText);
 
         messageText = new ChangeableText(Utils.toRes(110), Utils.toRes(5),
                 ResourceManager.getInstance().getFont("CaptionFont"), "Logging in...", 16);
@@ -135,8 +135,8 @@ public class OnlinePanel extends Entity {
 
         scoreText.setText(scoreBuilder.toString());
 
-        accText.setText(String.format("Accuracy: %.2f%%",
-                OnlineManager.getInstance().getAccuracy() * 100f));
+//        accText.setText(String.format("Accuracy: %.2f%%",
+//                OnlineManager.getInstance().getAccuracy() * 100f));
         rankText.setScale(1);
         rankText.setText(String.format("#%d", OnlineManager.getInstance().getRank()));
         rankText.setPosition(Utils.toRes(390 + 10) - rankText.getWidth() * 1.7f, Utils.toRes(55));
@@ -159,5 +159,16 @@ public class OnlinePanel extends Entity {
         Debug.i("Avatar is set!");
         avatar = new Sprite(0, 0, Utils.toRes(110), Utils.toRes(110), tex);
         frontLayer.attachChild(avatar);
+
+        if(OnlineManager.getInstance().isMappooler()) {
+            nameText.setColor(0.81f, 1f, 0.67f);
+        }
+
+        if(OnlineManager.getInstance().isStaff()) {
+            nameText.setColor(0.7f, 0.38f, 0.99f);
+        }
+
+        onlineLayer.detachSelf();
+        attachChild(onlineLayer);
     }
 }
