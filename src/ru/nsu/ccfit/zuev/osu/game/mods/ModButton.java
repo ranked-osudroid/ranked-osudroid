@@ -3,6 +3,7 @@ package ru.nsu.ccfit.zuev.osu.game.mods;
 import org.anddev.andengine.entity.sprite.Sprite;
 import org.anddev.andengine.input.touch.TouchEvent;
 
+import lombok.Getter;
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
 import ru.nsu.ccfit.zuev.osu.Utils;
 
@@ -12,6 +13,7 @@ public class ModButton extends Sprite {
     private static final float initalRotate = 0f;
     private static final float selectedRotate = 5f;
 
+    @Getter
     private GameMod mod;
     private IModSwitcher switcher = null;
 
@@ -41,6 +43,11 @@ public class ModButton extends Sprite {
     @Override
     public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
                                  float pTouchAreaLocalX, float pTouchAreaLocalY) {
+
+        if(mod == GameMod.MOD_SCOREV2 || mod == GameMod.MOD_NOFAIL) {
+            return true;
+        }
+
         if (pSceneTouchEvent.isActionDown() && switcher != null) {
             setModEnabled(switcher.switchMod(mod));
             return true;
