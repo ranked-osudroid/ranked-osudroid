@@ -416,6 +416,11 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             GameHelper.setPr(true);
         }
 
+        GameHelper.setV2(false);
+        if(ModMenu.getInstance().getMod().contains(GameMod.MOD_SCOREV2)) {
+            GameHelper.setV2(true);
+        }
+
         timeMultiplier = 1f;
         GameHelper.setDoubleTime(false);
         GameHelper.setNightCore(false);
