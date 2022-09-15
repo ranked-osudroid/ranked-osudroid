@@ -66,6 +66,10 @@ public class GameHelper {
     @Setter
     private static boolean pr;
 
+    @Getter
+    @Setter
+    private static boolean v2;
+
     static {
         binomTableN = 35;
         binomTable = new double[binomTableN][binomTableN];

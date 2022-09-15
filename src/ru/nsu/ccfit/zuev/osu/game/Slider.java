@@ -807,7 +807,7 @@ public class Slider extends GameObject {
         float acc = Math.abs(firstClickTime - preTime);
         firstClickTime = 0;
 
-        if(GameHelper.isPr()) {
+        if(GameHelper.isV2()) {
             DifficultyHelper difficultyHelper = GameHelper.getDifficultyHelper();
             float od = GameScene.getOverallDifficulty();
 
