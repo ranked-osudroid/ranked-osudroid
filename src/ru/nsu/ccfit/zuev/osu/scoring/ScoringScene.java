@@ -421,7 +421,7 @@ public class ScoringScene {
         String mapperStr = "Beatmap by " + trackInfo.getCreator();
         String playerStr = "Played by " + stat.getPlayerName() + " on " +
                 new java.text.SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.getDefault()).format(new java.util.Date(stat.getTime()));
-        playerStr += String.format("  %s(%s)", BuildConfig.VERSION_NAME, BuildConfig.BUILD_TYPE);
+        playerStr += String.format("  ranked-osu!droid(%s)", BuildConfig.BUILD_TYPE);
         if (stat.getChangeSpeed() != 1 ||
             stat.isEnableForceAR() ||
             stat.getFLFollowDelay() != FlashLightEntity.defaultMoveDelayS &&
