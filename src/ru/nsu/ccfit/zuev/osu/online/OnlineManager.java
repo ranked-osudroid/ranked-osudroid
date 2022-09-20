@@ -14,9 +14,11 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 
 import lombok.Getter;
 import ml.ranked_osudroid.osudroid.CodeMessages;
+import ml.ranked_osudroid.osudroid.socket.SocketSession;
 import okhttp3.OkHttpClient;
 import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.ResourceManager;
@@ -169,6 +171,7 @@ public class OnlineManager {
                     }
                     isStaff = object.get("staff").getAsInt() == 1;
                     isMappooler = object.get("mappooler").getAsInt() == 1;
+                    Executors.newSingleThreadExecutor().execute(() -> SocketSession.connect());
                     return true;
                 default:
                     ToastLogger.showText("I am sorry but Something went wrong. so I could not log in.", true);

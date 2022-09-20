@@ -52,6 +52,7 @@ import java.util.Iterator;
 import javax.microedition.khronos.opengles.GL10;
 
 import lombok.Getter;
+import ml.ranked_osudroid.osudroid.socket.SocketSession;
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider;
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.audio.effect.Metronome;
@@ -89,7 +90,6 @@ import ru.nsu.ccfit.zuev.osu.menu.LoadingScreen;
 import ru.nsu.ccfit.zuev.osu.menu.ModMenu;
 import ru.nsu.ccfit.zuev.osu.menu.PauseMenu;
 import ru.nsu.ccfit.zuev.osu.online.OnlineFileOperator;
-import ru.nsu.ccfit.zuev.osu.online.OnlineScoring;
 import ru.nsu.ccfit.zuev.osu.scoring.Replay;
 import ru.nsu.ccfit.zuev.osu.scoring.ResultType;
 import ru.nsu.ccfit.zuev.osu.scoring.TouchType;
@@ -2436,6 +2436,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addPress(secPassed, gamePoint, i);
             }
+            SocketSession.sendPressCursor(i, pTouchX, pTouchY);
             cursorIIsDown[i] = true;
         } else if (pSceneTouchEvent.isActionMove()) {
             PointF gamePoint = Utils.realToTrackCoords(new PointF(pTouchX, pTouchY));
@@ -2444,11 +2445,13 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addMove(secPassed, gamePoint, i);
             }
+            SocketSession.sendMoveCursor(i, pTouchX, pTouchY);
         } else if (pSceneTouchEvent.isActionUp()) {
             cursors[i].mouseDown = false;
             if (replay != null) {
                 replay.addUp(secPassed, i);
             }
+            SocketSession.sendReleaseCursor(i);
         } else {
             return false;
         }

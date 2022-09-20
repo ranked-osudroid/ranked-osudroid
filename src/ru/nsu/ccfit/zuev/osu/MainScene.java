@@ -56,6 +56,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import ml.ranked_osudroid.osudroid.socket.SocketSession;
 import ru.nsu.ccfit.zuev.audio.BassSoundProvider;
 import ru.nsu.ccfit.zuev.audio.Status;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;

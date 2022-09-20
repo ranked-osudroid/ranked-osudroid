@@ -72,6 +72,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import ml.ranked_osudroid.osudroid.socket.SocketSession;
 import ru.nsu.ccfit.zuev.audio.BassAudioPlayer;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SaveServiceObject;
 import ru.nsu.ccfit.zuev.audio.serviceAudio.SongService;
@@ -652,6 +653,7 @@ public class MainActivity extends BaseGameActivity implements
     public void onStop() {
         super.onStop();
         activityVisible = false;
+        SocketSession.disconnect();
     }
 
     @Override
