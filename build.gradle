@@ -61,6 +61,7 @@ android {
         buildConfigField "String", "SECURE_1", localProperties['SECURE_1']
         buildConfigField "String", "SECURE_2", localProperties['SECURE_2']
         buildConfigField "String", "CODENAME", localProperties['CODENAME']
+        buildConfigField "String", "SOCKET_URL", localProperties['SOCKET_URL']
     }
 
     packagingOptions {

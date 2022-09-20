@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
 public class SocketSession {
 
@@ -20,7 +21,7 @@ public class SocketSession {
             return;
         }
         try {
-            socket = IO.socket("http://192.168.0.7:8080");
+            socket = IO.socket(BuildConfig.SOCKET_URL);
 
             socket.on(Socket.EVENT_CONNECT, args -> {
                 Log.d("socket", "Connected with socket server.");
