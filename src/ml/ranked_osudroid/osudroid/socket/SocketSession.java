@@ -6,8 +6,11 @@ import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SocketSession {
 
     private static Socket socket;
@@ -46,24 +49,39 @@ public class SocketSession {
         socket.close();
     }
 
-    public static void sendPressCursor(int i, float x, float y) {
+    // TODO : 시작, 끝 할때 socket emit 처리 하기!
+    public static void sendStartMap(int mapId) {
         if(!isValid()) {
             return;
         }
-        socket.emit(CursorUpdateType.PRESS.getAsEventName(), System.currentTimeMillis(), i, x, y);
+        socket.emit("map_start", mapId, System.currentTimeMillis());
     }
 
-    public static void sendReleaseCursor(int i) {
+    public static void sendStopMap(int mapId) {
         if(!isValid()) {
             return;
         }
-        socket.emit(CursorUpdateType.RELEASE.getAsEventName(), System.currentTimeMillis(), i);
+        socket.emit("map_stop", mapId, System.currentTimeMillis());
     }
 
-    public static void sendMoveCursor(int i, float x, float y) {
+    public static void sendPressCursor(int mapId, float secPressed, int i, float x, float y) {
         if(!isValid()) {
             return;
         }
-        socket.emit(CursorUpdateType.MOVE.getAsEventName(), System.currentTimeMillis(), i, x, y);
+        socket.emit(CursorUpdateType.PRESS.getAsEventName(), mapId, secPressed, i, x, y);
+    }
+
+    public static void sendReleaseCursor(int mapId, float secPressed, int i) {
+        if(!isValid()) {
+            return;
+        }
+        socket.emit(CursorUpdateType.RELEASE.getAsEventName(), mapId, secPressed, i);
+    }
+
+    public static void sendMoveCursor(int mapId, float secPressed, int i, float x, float y) {
+        if(!isValid()) {
+            return;
+        }
+        socket.emit(CursorUpdateType.MOVE.getAsEventName(), mapId, secPressed, i, x, y);
     }
 }

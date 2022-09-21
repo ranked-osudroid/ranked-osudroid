@@ -171,7 +171,7 @@ public class OnlineManager {
                     }
                     isStaff = object.get("staff").getAsInt() == 1;
                     isMappooler = object.get("mappooler").getAsInt() == 1;
-                    Executors.newSingleThreadExecutor().execute(() -> SocketSession.connect());
+                    SocketSession.connect();
                     return true;
                 default:
                     ToastLogger.showText("I am sorry but Something went wrong. so I could not log in.", true);

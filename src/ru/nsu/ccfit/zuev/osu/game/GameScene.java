@@ -2425,6 +2425,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         final int i = pSceneTouchEvent.getPointerID();
         float pTouchX = FMath.clamp(pSceneTouchEvent.getX(), 0, Config.getRES_WIDTH());
         float pTouchY = FMath.clamp(pSceneTouchEvent.getY(), 0, Config.getRES_HEIGHT());
+        int mapId = stat.getMapId();
         if (pSceneTouchEvent.isActionDown()) {
             cursors[i].mouseDown = true;
             cursors[i].mouseDownOffsetMS = (pSceneTouchEvent.getMotionEvent().getEventTime() - previousFrameTime) * timeMultiplier;
@@ -2436,7 +2437,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addPress(secPassed, gamePoint, i);
             }
-            SocketSession.sendPressCursor(i, pTouchX, pTouchY);
+            SocketSession.sendPressCursor(mapId, secPassed, i, pTouchX, pTouchY);
             cursorIIsDown[i] = true;
         } else if (pSceneTouchEvent.isActionMove()) {
             PointF gamePoint = Utils.realToTrackCoords(new PointF(pTouchX, pTouchY));
@@ -2445,13 +2446,13 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addMove(secPassed, gamePoint, i);
             }
-            SocketSession.sendMoveCursor(i, pTouchX, pTouchY);
+            SocketSession.sendMoveCursor(mapId, secPassed, i, pTouchX, pTouchY);
         } else if (pSceneTouchEvent.isActionUp()) {
             cursors[i].mouseDown = false;
             if (replay != null) {
                 replay.addUp(secPassed, i);
             }
-            SocketSession.sendReleaseCursor(i);
+            SocketSession.sendReleaseCursor(mapId, secPassed, i);
         } else {
             return false;
         }
