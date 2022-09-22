@@ -1325,6 +1325,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         musicStarted = false;
         engine.setScene(scene);
         scene.registerUpdateHandler(this);
+
+        SocketSession.sendStartMap(stat.getMapId());
     }
 
 
@@ -2053,6 +2055,8 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
         }
         scene = new Scene();
         engine.setScene(oldScene);
+
+        SocketSession.sendStopMap(stat.getMapId());
     }
 
 
