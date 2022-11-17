@@ -2427,6 +2427,9 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             return false;
         }
         final int i = pSceneTouchEvent.getPointerID();
+        float originalX = pSceneTouchEvent.getX();
+        float originalY = pSceneTouchEvent.getY();
+
         float pTouchX = FMath.clamp(pSceneTouchEvent.getX(), 0, Config.getRES_WIDTH());
         float pTouchY = FMath.clamp(pSceneTouchEvent.getY(), 0, Config.getRES_HEIGHT());
         int mapId = stat.getMapId();
@@ -2441,7 +2444,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addPress(secPassed, gamePoint, i);
             }
-            SocketSession.sendPressCursor(mapId, secPassed, i, pTouchX, pTouchY);
+            SocketSession.sendPressCursor(mapId, secPassed, i, originalX, originalY);
             cursorIIsDown[i] = true;
         } else if (pSceneTouchEvent.isActionMove()) {
             PointF gamePoint = Utils.realToTrackCoords(new PointF(pTouchX, pTouchY));
@@ -2450,7 +2453,7 @@ public class GameScene implements IUpdateHandler, GameObjectListener,
             if (replay != null) {
                 replay.addMove(secPassed, gamePoint, i);
             }
-            SocketSession.sendMoveCursor(mapId, secPassed, i, pTouchX, pTouchY);
+            SocketSession.sendMoveCursor(mapId, secPassed, i, originalX, originalY);
         } else if (pSceneTouchEvent.isActionUp()) {
             cursors[i].mouseDown = false;
             if (replay != null) {

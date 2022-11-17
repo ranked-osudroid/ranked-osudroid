@@ -15,6 +15,7 @@ import io.socket.client.Socket;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import ru.nsu.ccfit.zuev.osu.Config;
 import ru.nsu.ccfit.zuev.osu.online.OnlineManager;
 import ru.nsu.ccfit.zuev.osuplus.BuildConfig;
 
@@ -70,27 +71,11 @@ public class SocketSession {
         socket.close();
     }
 
-    // TODO : 시작, 끝 할때 socket emit 처리 하기!
     public static void sendStartMap(int mapId) {
         if(!isValid()) {
             return;
         }
-        socket.emit("map_start", mapId, System.currentTimeMillis());
-
-        socket.on("position_update", args -> {
-           try {
-               JsonObject object = JsonParser.parseString(((JSONObject) args[0]).toString()).getAsJsonObject();
-               String type = object.get("type").getAsString();
-               long time = object.get("time").getAsLong();
-               int i = object.get("i").getAsInt();
-               float x = type.equals("release") ? 0 : object.get("x").getAsFloat();
-               float y = type.equals("release") ? 0 : object.get("y").getAsFloat();
-               Log.d("socket", MessageFormat.format("Position Update! | type : {0} | time : {1} | i : {2} | x : {3} | y : {4}", type, time, i, x, y));
-           }
-           catch (Exception e) {
-               e.printStackTrace();
-           }
-        });
+        socket.emit("map_start", mapId, System.currentTimeMillis(), Config.getRES_WIDTH(), Config.getRES_HEIGHT());
     }
 
     public static void sendStopMap(int mapId) {
@@ -98,8 +83,6 @@ public class SocketSession {
             return;
         }
         socket.emit("map_stop", mapId, System.currentTimeMillis());
-
-        socket.off("position_update");
     }
 
     public static void sendPressCursor(int mapId, float secPressed, int i, float x, float y) {
